@@ -8,6 +8,19 @@ This Terraform module provisions the same infrastructure, from an existing one i
 - [Marko Skendo](https://github.com/ingmarko)
 - [Ditmir Spahiu](https://github.com/DitmirSpahiu)
 
+## List of Replicated Resources
+
+1- Azure Databricks Service
+
+
+2- Azure App Configuration
+
+
+3- Key Vault
+
+
+4- Azure Monitor Action Group
+
 ## How to Use
 
 ### Variables
@@ -21,7 +34,7 @@ This Terraform module provisions the same infrastructure, from an existing one i
 ### Example with ALL Variables:
 
 ```hcl
-module "replicaiton" {
+module "replication" {
   source                      = "path/to/module_files"
   existing_resource_group_name = "existing-rg-name"
   new_resource_group_name      = "new-rg-name"
