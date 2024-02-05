@@ -22,6 +22,18 @@ variable "new_resource_group_name" {
   }
 }
 
+# Name of new resource group where VNET will be created
+
+variable "new_resource_group_name_for_vnet" {
+  type        = string
+  description = "Name of new resource group where resources will be created"
+
+  validation {
+    condition     = var.new_resource_group_name_for_vnet != null
+    error_message = "Please provide a value for the new_resource_group_name"
+  }
+}
+
 # Name of region where resources will reside
 
 variable "region_name" {

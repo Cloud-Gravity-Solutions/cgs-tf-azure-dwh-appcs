@@ -5,11 +5,17 @@ resource "azurerm_resource_group" "new_resource_group" {
   location = var.region_name
 }
 
+# New resource group where the VNET will reside
+
+resource "azurerm_resource_group" "new_resource_group_VNET" {
+  name     = var.new_resource_group_name_for_vnet
+  location = var.region_name
+}
 
 # Azure Key Vault that will be created on new resource group
 
 resource "azurerm_key_vault" "new_key_vault" {
-  name                        = join("", ["kvdlhprod", azurerm_resource_group.new_resource_group.location, "001"])
+  name                        = join("", ["kvdlhprod", local.naming_convetions[azurerm_resource_group.new_resource_group_VNET.location], "001"])
   location                    = azurerm_resource_group.new_resource_group.location
   resource_group_name         = azurerm_resource_group.new_resource_group.name
   enabled_for_disk_encryption = data.azurerm_key_vault.existing_keyvault.enabled_for_disk_encryption
@@ -26,14 +32,14 @@ resource "azurerm_key_vault" "new_key_vault" {
 # Azure App Configuration that will be created on new resource group
 
 resource "azurerm_app_configuration" "new_app_configuration" {
-  name                       = join("-", ["appcs", "dlh", "prod", azurerm_resource_group.new_resource_group.location, "001"])
+  name                       = join("-", ["appcs", "dlh", "prod", local.naming_convetions[azurerm_resource_group.new_resource_group_VNET.location], "001"])
   resource_group_name        = azurerm_resource_group.new_resource_group.name
   location                   = azurerm_resource_group.new_resource_group.location
   sku                        = data.azurerm_app_configuration.existing_app_configuration.sku
   local_auth_enabled         = data.azurerm_app_configuration.existing_app_configuration.local_auth_enabled
   public_network_access      = data.azurerm_app_configuration.existing_app_configuration.public_network_access
   purge_protection_enabled   = data.azurerm_app_configuration.existing_app_configuration.purge_protection_enabled
-  soft_delete_retention_days = data.azurerm_app_configuration.existing_app_configuration.soft_delete_retention_days
+  soft_delete_retention_days = data.azurerm_app_configuration.existing_app_configuration.sku == "standard" ? data.azurerm_app_configuration.existing_app_configuration.soft_delete_retention_days : null
 
   dynamic "identity" {
     for_each = try(data.azurerm_app_configuration.existing_app_configuration.identity, [])
@@ -71,7 +77,7 @@ resource "azurerm_app_configuration" "new_app_configuration" {
 # Azure Databricks Service to be created on the new resource group
 
 resource "azurerm_databricks_workspace" "new_databricks_service" {
-  name                = join("-", ["dbw", "dlh", "prod", azurerm_resource_group.new_resource_group.location, "001"])
+  name                = join("-", ["dbw", "dlh", "prod", local.naming_convetions[azurerm_resource_group.new_resource_group_VNET.location], "001"])
   resource_group_name = azurerm_resource_group.new_resource_group.name
   location            = azurerm_resource_group.new_resource_group.location
   sku                 = data.azurerm_databricks_workspace.existing_databricks_service.sku
@@ -79,8 +85,6 @@ resource "azurerm_databricks_workspace" "new_databricks_service" {
 
   tags = data.azurerm_databricks_workspace.existing_databricks_service.tags
 }
-
-## Cluster to be added (Note) if needed
 
 
 # Azure Action Group to be created on new resource group
@@ -210,4 +214,26 @@ resource "azurerm_monitor_action_group" "new_action_group" {
       use_common_alert_schema = lookup(webhook_receiver.value, "use_common_alert_schema", null)
     }
   }
+
+}
+
+# Azure VNET that will be replicated
+
+resource "azurerm_virtual_network" "new_vnet" {
+  name                = join("-", ["pdlh", "vnet1", local.naming_convetions.vnet[azurerm_resource_group.new_resource_group_VNET.location]])
+  location            = azurerm_resource_group.new_resource_group_VNET.location
+  resource_group_name = azurerm_resource_group.new_resource_group_VNET.name
+  address_space       = data.azurerm_virtual_network.existing_vnet.address_space
+  dns_servers         = data.azurerm_virtual_network.existing_vnet.dns_servers
+
+  dynamic "subnet" {
+    for_each = try(data.azurerm_virtual_network.existing_vnet.subnets, [])
+
+    content {
+      name           = lookup(subnet.value, "name", null)
+      address_prefix = lookup(subnet.value, "address_prefix", null)
+    }
+  }
+
+  tags = data.azurerm_virtual_network.existing_vnet.tags
 }
