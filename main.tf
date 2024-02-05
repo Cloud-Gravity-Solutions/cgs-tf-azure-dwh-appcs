@@ -226,14 +226,6 @@ resource "azurerm_virtual_network" "new_vnet" {
   address_space       = data.azurerm_virtual_network.existing_vnet.address_space
   dns_servers         = data.azurerm_virtual_network.existing_vnet.dns_servers
 
-  dynamic "subnet" {
-    for_each = try(data.azurerm_virtual_network.existing_vnet.subnets, [])
-
-    content {
-      name           = lookup(subnet.value, "name", null)
-      address_prefix = lookup(subnet.value, "address_prefix", null)
-    }
-  }
 
   tags = data.azurerm_virtual_network.existing_vnet.tags
 }

@@ -20,5 +20,5 @@ data "azurerm_key_vault" "existing_keyvault" {
 
 data "azurerm_virtual_network" "existing_vnet" {
   name                = local.existing_vnet
-  resource_group_name = var.new_resource_group_name_for_vnet
+  resource_group_name = var.existing_resource_group_name_for_vnet
 }

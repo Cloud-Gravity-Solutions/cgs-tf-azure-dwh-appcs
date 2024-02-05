@@ -10,6 +10,18 @@ variable "existing_resource_group_name" {
   }
 }
 
+# # Name of existing resource group for VNET
+
+variable "existing_resource_group_name_for_vnet" {
+  type        = string
+  description = "Name of existing resource group for vnet"
+
+  validation {
+    condition     = var.existing_resource_group_name_for_vnet != null
+    error_message = "Please provide a value for the existing_resource_group_name"
+  }
+}
+
 # Name of new resource group where resources will be created
 
 variable "new_resource_group_name" {
@@ -26,11 +38,11 @@ variable "new_resource_group_name" {
 
 variable "new_resource_group_name_for_vnet" {
   type        = string
-  description = "Name of new resource group where resources will be created"
+  description = "Name of new resource group where VNET be created"
 
   validation {
     condition     = var.new_resource_group_name_for_vnet != null
-    error_message = "Please provide a value for the new_resource_group_name"
+    error_message = "Please provide a value for the new_resource_group_name_for_vnet"
   }
 }
 

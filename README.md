@@ -31,6 +31,7 @@ This Terraform module provisions the same infrastructure, from an existing one i
 | Name                           | Description                                                                                   | Type        | Default                             | Required |
 |--------------------------------|-----------------------------------------------------------------------------------------------|:-----------:|:-----------------------------------:|:-------:|
 | `existing_resource_group_name` | Name of the existing resource group to use for fetching data.                                 | `string`    | n/a                                 | yes     |
+| `existing_resource_group_name_for_vnet` | Name of the existing resource group used for vnet fetch data.                                 | `string`    | n/a                                 | yes     |
 | `new_resource_group_name`      | Name of the new resource group where resources will be created.                                | `string`    | n/a                                 | yes     |
 | `new_resource_group_name_for_vnet`      | Name of the new virtual network that will be created.                                | `string`    | n/a                                 | yes     |
 | `region_name`                  | Name of the region where resources will reside.                                               | `string`    | n/a                                 | yes     |
