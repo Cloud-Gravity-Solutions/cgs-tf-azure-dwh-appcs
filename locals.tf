@@ -6,14 +6,12 @@ locals {
   existing_vnet               = "pdhl-vnet1-cwe"
 
   naming_convetions = {
-    westeurope    = "westeu"
-    easteurope    = "easteu"
-    centraleurope = "centraleu"
+    westeurope  = "westeu"
+    northeurope = "northeu"
 
     vnet = {
-      westeurope    = "cwe"
-      easteurope    = "cee"
-      centraleurope = "cce"
+      westeurope  = "cwe"
+      northeurope = "cne"
     }
   }
 }
