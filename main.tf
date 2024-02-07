@@ -37,7 +37,6 @@ resource "azurerm_app_configuration" "new_app_configuration" {
   location                   = azurerm_resource_group.new_resource_group.location
   sku                        = data.azurerm_app_configuration.existing_app_configuration.sku
   local_auth_enabled         = data.azurerm_app_configuration.existing_app_configuration.local_auth_enabled
-  public_network_access      = data.azurerm_app_configuration.existing_app_configuration.public_network_access
   purge_protection_enabled   = data.azurerm_app_configuration.existing_app_configuration.purge_protection_enabled
   soft_delete_retention_days = data.azurerm_app_configuration.existing_app_configuration.sku == "standard" ? data.azurerm_app_configuration.existing_app_configuration.soft_delete_retention_days : null
 
@@ -223,9 +222,5 @@ resource "azurerm_virtual_network" "new_vnet" {
   name                = join("-", ["pdlh", "vnet1", local.naming_convetions.vnet[azurerm_resource_group.new_resource_group_VNET.location]])
   location            = azurerm_resource_group.new_resource_group_VNET.location
   resource_group_name = azurerm_resource_group.new_resource_group_VNET.name
-  address_space       = data.azurerm_virtual_network.existing_vnet.address_space
-  dns_servers         = data.azurerm_virtual_network.existing_vnet.dns_servers
-
-
-  tags = data.azurerm_virtual_network.existing_vnet.tags
+  address_space       = ["10.45.0.0/16"]
 }

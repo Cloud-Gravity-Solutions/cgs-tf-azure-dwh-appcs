@@ -12,15 +12,6 @@ variable "existing_resource_group_name" {
 
 # # Name of existing resource group for VNET
 
-variable "existing_resource_group_name_for_vnet" {
-  type        = string
-  description = "Name of existing resource group for vnet"
-
-  validation {
-    condition     = var.existing_resource_group_name_for_vnet != null
-    error_message = "Please provide a value for the existing_resource_group_name"
-  }
-}
 
 # Name of new resource group where resources will be created
 
