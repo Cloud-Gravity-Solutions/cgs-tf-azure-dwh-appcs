@@ -42,7 +42,6 @@ This Terraform module provisions the same infrastructure, from an existing one i
 module "replication" {
   source                                = "path/to/module_files"
   existing_resource_group_name          = "existing-rg-name"
-  existing_resource_group_name_for_vnet = "test-vnet"
   new_resource_group_name               = "new-rg-name"
   new_resource_group_name_for_vnet      = "test-vnet-2"
   region_name                           = "your-region-name" 
