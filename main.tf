@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
 
   dynamic "access_policy" {
-    for_each = data.azurerm_key_vault.existing_keyvault.access_policy
+    for_each = try(data.azurerm_key_vault.existing_keyvault.access_policy, [])
 
     content {
       application_id          = lookup(access_policy.value, "application_id", null)
@@ -41,7 +41,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   }
 
   dynamic "network_acls" {
-    for_each = data.azurerm_key_vault.existing_keyvault.network_acls
+    for_each = try(data.azurerm_key_vault.existing_keyvault.network_acls, [])
 
     content {
       bypass                     = lookup(network_acls.value, "bypass", null)
