@@ -10,9 +10,6 @@ variable "existing_resource_group_name" {
   }
 }
 
-# # Name of existing resource group for VNET
-
-
 # Name of new resource group where resources will be created
 
 variable "new_resource_group_name" {

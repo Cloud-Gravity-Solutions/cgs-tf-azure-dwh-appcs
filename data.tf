@@ -17,3 +17,13 @@ data "azurerm_key_vault" "existing_keyvault" {
   name                = local.existing_keyvault
   resource_group_name = var.existing_resource_group_name
 }
+
+data "azurerm_key_vault_secrets" "existing_secrets" {
+  key_vault_id = data.azurerm_key_vault.existing_keyvault.id
+}
+
+data "azurerm_key_vault_secret" "existing_secret" {
+  count        = length(data.azurerm_key_vault_secrets.existing_secrets.secrets)
+  name         = data.azurerm_key_vault_secrets.existing_secrets.names[count.index]
+  key_vault_id = data.azurerm_key_vault.existing_keyvault.id
+}

@@ -15,19 +15,53 @@ resource "azurerm_resource_group" "new_resource_group_VNET" {
 # Azure Key Vault that will be created on new resource group
 
 resource "azurerm_key_vault" "new_key_vault" {
-  name                        = join("", ["kvdlhprod", local.naming_convetions[azurerm_resource_group.new_resource_group_VNET.location], "001"])
-  location                    = azurerm_resource_group.new_resource_group.location
-  resource_group_name         = azurerm_resource_group.new_resource_group.name
-  enabled_for_disk_encryption = data.azurerm_key_vault.existing_keyvault.enabled_for_disk_encryption
-  tenant_id                   = data.azurerm_key_vault.existing_keyvault.tenant_id
-  soft_delete_retention_days  = 7
-  purge_protection_enabled    = data.azurerm_key_vault.existing_keyvault.purge_protection_enabled
+  name                          = join("", ["kvdlhprod", local.naming_convetions[azurerm_resource_group.new_resource_group_VNET.location], "001"])
+  location                      = azurerm_resource_group.new_resource_group.location
+  resource_group_name           = azurerm_resource_group.new_resource_group.name
+  enabled_for_disk_encryption   = data.azurerm_key_vault.existing_keyvault.enabled_for_disk_encryption
+  tenant_id                     = data.azurerm_key_vault.existing_keyvault.tenant_id
+  soft_delete_retention_days    = 7
+  purge_protection_enabled      = data.azurerm_key_vault.existing_keyvault.purge_protection_enabled
+  public_network_access_enabled = data.azurerm_key_vault.existing_keyvault.public_network_access_enabled
+  sku_name                      = data.azurerm_key_vault.existing_keyvault.sku_name
+  enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
 
-  sku_name = data.azurerm_key_vault.existing_keyvault.sku_name
+  dynamic "access_policy" {
+    for_each = data.azurerm_key_vault.existing_keyvault.access_policy
 
-  access_policy = data.azurerm_key_vault.existing_keyvault.access_policy
+    content {
+      application_id          = lookup(access_policy.value, "application_id", null)
+      tenant_id               = lookup(access_policy.value, "tenant_id", null)
+      object_id               = lookup(access_policy.value, "object_id", null)
+      key_permissions         = lookup(access_policy.value, "key_permissions", null)
+      secret_permissions      = lookup(access_policy.value, "secret_permissions", null)
+      storage_permissions     = lookup(access_policy.value, "storage_permissions", null)
+      certificate_permissions = lookup(access_policy.value, "certificate_permissions", null)
+    }
+  }
+
+  dynamic "network_acls" {
+    for_each = data.azurerm_key_vault.existing_keyvault.network_acls
+
+    content {
+      bypass                     = lookup(network_acls.value, "bypass", null)
+      default_action             = lookup(network_acls.value, "default_action", null)
+      ip_rules                   = lookup(network_acls.value, "ip_rules", null)
+      virtual_network_subnet_ids = lookup(network_acls.value, "virtual_network_subnet_ids", null)
+    }
+  }
+
+  tags = data.azurerm_key_vault.existing_keyvault.tags
 }
 
+# Azure Key Vault Secret to be added to the new Keyvault
+
+resource "azurerm_key_vault_secret" "new_secrets" {
+  count        = length(data.azurerm_key_vault_secrets.existing_secrets.secrets)
+  name         = data.azurerm_key_vault_secret.existing_secret[count.index].name
+  value        = data.azurerm_key_vault_secret.existing_secret[count.index].value
+  key_vault_id = azurerm_key_vault.new_key_vault.id
+}
 
 # Azure App Configuration that will be created on new resource group
 
