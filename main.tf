@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
 
   dynamic "access_policy" {
-    for_each = data.azurerm_key_vault.existing_keyvault.access_policy
+    for_each =data.azurerm_key_vault.existing_keyvault.access_policy
 
     content {
       application_id          = lookup(access_policy.value, "application_id", null)
@@ -63,7 +63,7 @@ resource "azurerm_key_vault_secret" "new_secrets" {
   key_vault_id = azurerm_key_vault.new_key_vault.id
 }
 
-# Azure Key Vault Key to be replicated to the new KeyVault
+# Azure Key Vault Keys to be replicated to the new KeyVault
 
 resource "azurerm_key_vault_key" "new_key" {
   count        = length(var.key_names)
