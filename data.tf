@@ -29,7 +29,8 @@ data "azurerm_key_vault_secret" "existing_secret" {
 }
 
 data "azurerm_key_vault_key" "existing_key" {
-  name         = var.key_name
+  count        = length(var.key_names)
+  name         = var.key_names[count.index]
   key_vault_id = data.azurerm_key_vault.existing_keyvault.id
 }
 

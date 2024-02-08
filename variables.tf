@@ -48,12 +48,12 @@ variable "region_name" {
 
 # Name of existing key inside key vault
 
-variable "key_name" {
-  type        = string
+variable "key_names" {
+  type        = list(string)
   description = "Name of existing key inside keyvault"
 
   validation {
-    condition     = var.key_name != null
+    condition     = var.key_names != null
     error_message = "Please provide a value for the key_name"
   }
 }

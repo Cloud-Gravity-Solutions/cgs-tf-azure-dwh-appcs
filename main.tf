@@ -66,10 +66,11 @@ resource "azurerm_key_vault_secret" "new_secrets" {
 # Azure Key Vault Key to be replicated to the new KeyVault
 
 resource "azurerm_key_vault_key" "new_key" {
-  name         = data.azurerm_key_vault_key.existing_key.name
+  count        = length(var.key_names)
+  name         = var.key_names[count.index]
   key_vault_id = azurerm_key_vault.new_key_vault.id
-  key_type     = data.azurerm_key_vault_key.existing_key.key_type
-  key_size     = data.azurerm_key_vault_key.existing_key.key_size
+  key_type     = data.azurerm_key_vault_key.existing_key[count.index].key_type
+  key_size     = data.azurerm_key_vault_key.existing_key[count.index].key_size
 
   key_opts = [
     "decrypt",
