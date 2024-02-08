@@ -25,7 +25,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   public_network_access_enabled = data.azurerm_key_vault.existing_keyvault.public_network_access_enabled
   sku_name                      = data.azurerm_key_vault.existing_keyvault.sku_name
   enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
-  
+
   dynamic "access_policy" {
     for_each = data.azurerm_key_vault.existing_keyvault.access_policy
 
@@ -69,9 +69,9 @@ resource "azurerm_key_vault_key" "new_key" {
   count        = length(var.key_names)
   name         = var.key_names[count.index]
   key_vault_id = azurerm_key_vault.new_key_vault.id
-  key_type     = data.azurerm_key_vault_key.existing_key[count.index].key_type
-  key_size     = data.azurerm_key_vault_key.existing_key[count.index].key_size
-  
+  key_type     = try(data.azurerm_key_vault_key.existing_key[count.index].key_type, "RSA")
+  key_size     = try(data.azurerm_key_vault_key.existing_key[count.index].key_size, "2048")
+
   key_opts = [
     "decrypt",
     "encrypt",
