@@ -33,6 +33,7 @@ This Terraform module provisions the same infrastructure, from an existing one i
 | `existing_resource_group_name` | Name of the existing resource group to use for fetching data.                                 | `string`    | n/a                                 | yes     |
 | `new_resource_group_name`      | Name of the new resource group where resources will be created.                                | `string`    | n/a                                 | yes     |
 | `new_resource_group_name_for_vnet`      | Name of the new virtual network that will be created.                                | `string`    | n/a                                 | yes     |
+| `key_names`                  | List of all keyvault key names to be replicated.                                               | `list(string)`    | n/a                                 | yes     |
 | `region_name`                  | Name of the region where resources will reside.                                               | `string`    | n/a                                 | yes     |
 
 ### Example with ALL Variables:
@@ -43,5 +44,6 @@ module "replication" {
   existing_resource_group_name          = "existing-rg-name"
   new_resource_group_name               = "new-rg-name"
   new_resource_group_name_for_vnet      = "test-vnet-2"
-  region_name                           = "your-region-name" 
+  region_name                           = "your-region-name"
+  key_names                             = ["key-1", "key-2"] 
 }
