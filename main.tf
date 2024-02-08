@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
 
   dynamic "access_policy" {
-    for_each = try(data.azurerm_key_vault.existing_keyvault.access_policy, [])
+    for_each = data.azurerm_key_vault.existing_keyvault.access_policy
 
     content {
       application_id          = lookup(access_policy.value, "application_id", null)
@@ -61,6 +61,24 @@ resource "azurerm_key_vault_secret" "new_secrets" {
   name         = data.azurerm_key_vault_secret.existing_secret[count.index].name
   value        = data.azurerm_key_vault_secret.existing_secret[count.index].value
   key_vault_id = azurerm_key_vault.new_key_vault.id
+}
+
+# Azure Key Vault Key to be replicated to the new KeyVault
+
+resource "azurerm_key_vault_key" "new_key" {
+  name         = data.azurerm_key_vault_key.existing_key.name
+  key_vault_id = azurerm_key_vault.new_key_vault.id
+  key_type     = data.azurerm_key_vault_key.existing_key.key_type
+  key_size     = data.azurerm_key_vault_key.existing_key.key_size
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 }
 
 # Azure App Configuration that will be created on new resource group
