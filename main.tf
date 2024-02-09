@@ -70,7 +70,7 @@ resource "azurerm_key_vault_key" "new_key" {
   name         = var.key_names[count.index]
   key_vault_id = azurerm_key_vault.new_key_vault.id
   key_type     = try(data.azurerm_key_vault_key.existing_key[count.index].key_type, "RSA")
-  key_size     = try(data.azurerm_key_vault_key.existing_key[count.index].key_size, 2048)
+  key_size     = try(2048, data.azurerm_key_vault_key.existing_key[count.index].key_size)
 
   key_opts = [
     "decrypt",
