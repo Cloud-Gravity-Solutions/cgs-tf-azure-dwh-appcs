@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "new_key_vault" {
   enable_rbac_authorization     = data.azurerm_key_vault.existing_keyvault.enable_rbac_authorization
 
   dynamic "access_policy" {
-    for_each =data.azurerm_key_vault.existing_keyvault.access_policy
+    for_each = data.azurerm_key_vault.existing_keyvault.access_policy
 
     content {
       application_id          = lookup(access_policy.value, "application_id", null)
@@ -122,9 +122,16 @@ resource "azurerm_app_configuration" "new_app_configuration" {
 
   tags = data.azurerm_app_configuration.existing_app_configuration.tags
 
-  depends_on = [azurerm_key_vault.new_key_vault]
+  # depends_on = [azurerm_key_vault.new_key_vault]
 
 }
+
+resource "azurerm_role_assignment" "appconf_dataowner" {
+  scope                = azurerm_app_configuration.new_app_configuration.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 
 # Azure App Configuration Keys to be replicated
 
@@ -135,14 +142,12 @@ resource "azurerm_app_configuration_key" "new_keys" {
   label                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["label"]
   value                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["value"]
 
-  depends_on = [azurerm_role_assignment.appconf_dataowner]
+  depends_on = [
+    azurerm_role_assignment.appconf_dataowner
+  ]
+
 }
 
-resource "azurerm_role_assignment" "new_appconf_dataowner" {
-  scope                = azurerm_app_configuration.new_app_configuration.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
 
 # Azure Databricks Service to be created on the new resource group
 
@@ -295,3 +300,55 @@ resource "azurerm_virtual_network" "new_vnet" {
   resource_group_name = azurerm_resource_group.new_resource_group_VNET.name
   address_space       = ["10.45.0.0/16"]
 }
+
+# Azure Storage Account to be replicated
+
+resource "azurerm_storage_account" "new_storage_account" {
+  name                            = join("", [var.new_storage_account_name, local.naming_convetions.vnet[azurerm_resource_group.new_resource_group_VNET.location]])
+  resource_group_name             = azurerm_resource_group.new_resource_group.name
+  location                        = azurerm_resource_group.new_resource_group.location
+  account_tier                    = data.azurerm_storage_account.existing_storage_account.account_tier
+  account_replication_type        = data.azurerm_storage_account.existing_storage_account.account_replication_type
+  allow_nested_items_to_be_public = data.azurerm_storage_account.existing_storage_account.allow_nested_items_to_be_public
+
+
+  dynamic "identity" {
+    for_each = try(data.azurerm_storage_account.existing_storage_account.identity, [])
+
+    content {
+      type         = lookup(identity.value, "type", null)
+      identity_ids = lookup(identity.value, "identity_ids", null)
+      principal_id = lookup(identity.value, "principal_id", null)
+      tenant_id    = lookup(identity.value, "tenant_id", null)
+    }
+  }
+  tags = data.azurerm_storage_account.existing_storage_account.tags
+}
+
+# Azure Storage Account Containers
+
+resource "azurerm_storage_container" "new_containers" {
+  count                 = length(data.azurerm_storage_containers.existing_containers.containers)
+  name                  = data.azurerm_storage_container.existing_container[count.index].name
+  storage_account_name  = azurerm_storage_account.new_storage_account.name
+  container_access_type = data.azurerm_storage_container.existing_container[count.index].container_access_type
+
+  depends_on = [azurerm_role_assignment.storage_account_owner, azurerm_role_assignment.storage_account_contributor]
+}
+
+# Role assignments for the storage accounts to be replicated
+
+resource "azurerm_role_assignment" "storage_account_owner" {
+  scope                = azurerm_storage_account.new_storage_account.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "storage_account_contributor" {
+  scope                = azurerm_storage_account.new_storage_account.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+
+

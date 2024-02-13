@@ -40,3 +40,19 @@ data "azurerm_app_configuration_keys" "existing_app_keys" {
   configuration_store_id = data.azurerm_app_configuration.existing_app_configuration.id
 }
 
+data "azurerm_storage_account" "existing_storage_account" {
+  name                = local.existing_storage_account
+  resource_group_name = var.existing_resource_group_name
+}
+
+data "azurerm_storage_containers" "existing_containers" {
+  storage_account_id = data.azurerm_storage_account.existing_storage_account.id
+}
+
+data "azurerm_storage_container" "existing_container" {
+  count                = length(data.azurerm_storage_containers.existing_containers.containers)
+  name                 = data.azurerm_storage_containers.existing_containers.containers[count.index].name
+  storage_account_name = data.azurerm_storage_account.existing_storage_account.name
+}
+
+

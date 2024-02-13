@@ -57,3 +57,14 @@ variable "key_names" {
     error_message = "Please provide a value for the key_name"
   }
 }
+
+# Name of new storage account
+variable "new_storage_account_name" {
+  type        = string
+  description = "Name of new storage account name"
+
+  validation {
+    condition     = var.new_storage_account_name != null
+    error_message = "Please provide a value for the new_storage_account_name"
+  }
+}
