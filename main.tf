@@ -126,6 +126,24 @@ resource "azurerm_app_configuration" "new_app_configuration" {
 
 }
 
+# Azure App Configuration Keys to be replicated
+
+resource "azurerm_app_configuration_key" "new_keys" {
+  count                  = length(data.azurerm_app_configuration_keys.existing_app_keys.items)
+  configuration_store_id = azurerm_app_configuration.new_app_configuration.id
+  key                    = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["key"]
+  label                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["label"]
+  value                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["value"]
+
+  depends_on = [azurerm_role_assignment.appconf_dataowner]
+}
+
+resource "azurerm_role_assignment" "new_appconf_dataowner" {
+  scope                = azurerm_app_configuration.new_app_configuration.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 # Azure Databricks Service to be created on the new resource group
 
 resource "azurerm_databricks_workspace" "new_databricks_service" {
