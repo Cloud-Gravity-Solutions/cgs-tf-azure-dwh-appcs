@@ -126,13 +126,6 @@ resource "azurerm_app_configuration" "new_app_configuration" {
 
 }
 
-resource "azurerm_role_assignment" "appconf_dataowner" {
-  scope                = azurerm_app_configuration.new_app_configuration.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
-
-
 # Azure App Configuration Keys to be replicated
 
 resource "azurerm_app_configuration_key" "new_keys" {
@@ -141,11 +134,6 @@ resource "azurerm_app_configuration_key" "new_keys" {
   key                    = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["key"]
   label                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["label"]
   value                  = data.azurerm_app_configuration_keys.existing_app_keys.items[count.index]["value"]
-
-  depends_on = [
-    azurerm_role_assignment.appconf_dataowner
-  ]
-
 }
 
 
@@ -307,8 +295,8 @@ resource "azurerm_storage_account" "new_storage_account" {
   name                     = "stdlhnortheu001"
   resource_group_name      = azurerm_resource_group.new_resource_group.name
   location                 = azurerm_resource_group.new_resource_group.location
-  account_tier             = "Premium"
-  account_replication_type = "GRS"
+  account_tier             = "Standard"
+  account_replication_type = "RAGRS"
 }
 
 # Azure Storage Account Containers
@@ -317,8 +305,6 @@ resource "azurerm_storage_container" "new_containers" {
   name                  = "databricks"
   storage_account_name  = azurerm_storage_account.new_storage_account.name
   container_access_type = "private"
-
-  depends_on = [azurerm_role_assignment.storage_account_owner, azurerm_role_assignment.storage_account_contributor]
 }
 
 resource "azurerm_storage_blob" "new_blob" {
@@ -327,20 +313,6 @@ resource "azurerm_storage_blob" "new_blob" {
   storage_account_name   = azurerm_storage_account.new_storage_account.name
   storage_container_name = azurerm_storage_container.new_containers.name
   type                   = "Block"
-}
-
-# Role assignments for the storage accounts to be replicated
-
-resource "azurerm_role_assignment" "storage_account_owner" {
-  scope                = azurerm_storage_account.new_storage_account.id
-  role_definition_name = "Storage Blob Data Owner"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
-
-resource "azurerm_role_assignment" "storage_account_contributor" {
-  scope                = azurerm_storage_account.new_storage_account.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 
