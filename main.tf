@@ -304,36 +304,29 @@ resource "azurerm_virtual_network" "new_vnet" {
 # Azure Storage Account to be replicated
 
 resource "azurerm_storage_account" "new_storage_account" {
-  name                            = join("", [var.new_storage_account_name, local.naming_convetions.vnet[azurerm_resource_group.new_resource_group_VNET.location]])
-  resource_group_name             = azurerm_resource_group.new_resource_group.name
-  location                        = azurerm_resource_group.new_resource_group.location
-  account_tier                    = data.azurerm_storage_account.existing_storage_account.account_tier
-  account_replication_type        = data.azurerm_storage_account.existing_storage_account.account_replication_type
-  allow_nested_items_to_be_public = data.azurerm_storage_account.existing_storage_account.allow_nested_items_to_be_public
-
-
-  dynamic "identity" {
-    for_each = try(data.azurerm_storage_account.existing_storage_account.identity, [])
-
-    content {
-      type         = lookup(identity.value, "type", null)
-      identity_ids = lookup(identity.value, "identity_ids", null)
-      principal_id = lookup(identity.value, "principal_id", null)
-      tenant_id    = lookup(identity.value, "tenant_id", null)
-    }
-  }
-  tags = data.azurerm_storage_account.existing_storage_account.tags
+  name                     = "stdlhnortheu001"
+  resource_group_name      = azurerm_resource_group.new_resource_group.name
+  location                 = azurerm_resource_group.new_resource_group.location
+  account_tier             = "Premium"
+  account_replication_type = "GRS"
 }
 
 # Azure Storage Account Containers
 
 resource "azurerm_storage_container" "new_containers" {
-  count                 = length(data.azurerm_storage_containers.existing_containers.containers)
-  name                  = data.azurerm_storage_container.existing_container[count.index].name
+  name                  = "databricks"
   storage_account_name  = azurerm_storage_account.new_storage_account.name
-  container_access_type = data.azurerm_storage_container.existing_container[count.index].container_access_type
+  container_access_type = "private"
 
   depends_on = [azurerm_role_assignment.storage_account_owner, azurerm_role_assignment.storage_account_contributor]
+}
+
+resource "azurerm_storage_blob" "new_blob" {
+  count                  = length(local.blob_names)
+  name                   = local.blob_names[count.index]
+  storage_account_name   = azurerm_storage_account.new_storage_account.name
+  storage_container_name = azurerm_storage_container.new_containers.name
+  type                   = "Block"
 }
 
 # Role assignments for the storage accounts to be replicated

@@ -4,7 +4,7 @@ locals {
   existing_databricks_service = "dbw-dlh-prod-westeu-001"
   existing_keyvault           = "kvdlhprodwesteu001"
   existing_vnet               = "pdhl-vnet1-cwe"
-  existing_storage_account    = "stdlhnortheu001"
+  blob_names                  = ["managed", "unmanaged"]
 
   naming_convetions = {
     westeurope  = "westeu"
